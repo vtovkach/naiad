@@ -6,7 +6,7 @@ This repository contains low-level operating system experiments.
 ## Mini Bootloader Architecture
 
 The bootloader is split into multiple stages. Each stage performs a specific task
-required to gradually bring the system into a usable execution environment.
+required to gradually bring the system to a goal. 
 
 ---
 

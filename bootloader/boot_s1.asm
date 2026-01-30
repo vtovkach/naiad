@@ -20,19 +20,19 @@ start:
     mov ax, 0x0003
     int 0x10 
 
+    ; Display Boot Success Message 
     mov si, success_msg
+    call printStatus
 
-verify_boot:
-    cld 
-    lodsb 
-    test al, al 
-    jz check_a20
-    mov ah, 0x0E
-    mov bh, 0x00 
-    int 0x10 
-    jmp verify_boot
+    ; Check A20 line 
+    ; Returns:
+    ;   AX = 0  -> A20 disabled
+    ;   AX = 1  -> A20 enabled
+    call check_a20
 
+    jmp done 
 
+; Check A20 Address Line  
 check_a20:
     pushf 
     push ds
@@ -80,34 +80,26 @@ check_a20_exit:
     pop ds
     popf 
 
-    cmp ax, 1
-    mov si, a20_ne_msg
-    jne a20_not_enabled
+    ret 
 
-    mov si, a20_e_msg
-
-a20_enabled:
-    cld
+; Set SI to point to the message before the function call
+printStatus:
+    cld 
+beg:
     lodsb 
     test al, al 
-    jz done 
-    mov ah, 0x0e
-    mov bh, 0x00 
-    int 0x10 
-    jmp a20_enabled
+    jz end_print 
+    mov ah, 0x0E
+    mov bh, 0x00
+    int 0x10
+    jmp beg 
+end_print:
+    ret 
 
-a20_not_enabled:
-    cld
-    lodsb 
-    test al, al 
-    jz done 
-    mov ah, 0x0e
-    mov bh, 0x00 
-    int 0x10 
-    jmp a20_not_enabled
-
+; Halt CPU 
 done: 
-    jmp $
+    cli 
+    hlt 
 
 ; Message to indicate successful boot 
 success_msg:

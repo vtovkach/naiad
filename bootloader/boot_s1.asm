@@ -4,6 +4,7 @@ bits 16
 
 ; Initialize CS:IP
 cs_init:
+    mov [boot_drive], dl
     jmp 0x0000:start
 
 start:
@@ -30,16 +31,22 @@ start:
     ;   AX = 1  -> A20 enabled
     call check_a20
     
+    ; Display A20 Status Message 
     test ax, ax 
     jz .msg
 
     mov si, a20_e_msg
     call printStatus
     jmp .end_msg
+
 .msg:
     mov si, a20_ne_msg
     call printStatus
 .end_msg:
+
+    ; Load second stage to 0x0000:0x7E00 (phys 0x7E00)
+    ; Use conventional RAM below 0xA0000 (0x00000–0x9FFFF)  
+    call loadNextStage
     
     jmp done 
 
@@ -107,10 +114,51 @@ printStatus:
 .end_print:
     ret 
 
+; Read 32 sectors after boot sector to load 2nd stage  
+loadNextStage:
+    push ax
+    push bx
+    push cx 
+    push dx 
+    push es 
+
+    ; Set Destination ES:BX 
+    xor ax, ax 
+    mov es, ax 
+    mov bx, 0x7E00
+
+    mov ah, 0x02            ; read operation 
+    mov al, 0x20            ; number of sectors to read 
+    mov ch, 0               ; cylinder  
+    mov cl, 2               ; sector 2 (start AFTER boot sector)
+    mov dh, 0               ; head 
+    mov dl, [boot_drive]    ; boot drive saved from BIOS at the beginning 
+    int 0x13
+    jc .load_fail
+
+    mov si, s2_success_msg
+    call printStatus
+    jmp .load_ret 
+
+.load_fail:
+    mov si, s2_fail_msg
+    call printStatus
+
+.load_ret:
+    pop es 
+    pop dx 
+    pop cx 
+    pop bx 
+    pop ax 
+    ret
+
 ; Halt CPU 
 done: 
     cli 
     hlt 
+
+boot_drive:
+    db 0
 
 ; Message to indicate successful boot 
 success_msg:
@@ -119,6 +167,10 @@ a20_e_msg:
     db "A20 address line is enabled", 0x0D, 0x0A, 0
 a20_ne_msg:
     db "A20 is not enabled", 0x0D, 0x0A, 0
+s2_success_msg:
+    db "2nd Stage is loaded successfully.", 0x0D, 0x0A, 0
+s2_fail_msg:
+    db "2nd Stage loading failed.", 0x0D, 0x0A, 0 
 
 ; Boot signature 
 times 510-($-$$) db 0 

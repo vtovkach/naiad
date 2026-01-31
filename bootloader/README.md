@@ -5,7 +5,7 @@ required to gradually bring the system to a goal.
 
 ---
 
-## Stage 1 — Initial Boot (Real Mode)
+## Step 1 — Initial Boot (Real Mode)
 
 **Requirements:**
 - Initialize segment registers (`SS:SP`, `DS`, `ES`)
@@ -15,7 +15,7 @@ required to gradually bring the system to a goal.
 
 ---
 
-## Stage 2 — Hardware Discovery & Setup
+## Step 2 — Hardware Discovery & Setup
 
 **Requirements:**
 - Collect the system memory map using E820 and store it in a buffer
@@ -24,7 +24,7 @@ required to gradually bring the system to a goal.
 
 ---
 
-## Stage 3 — Protected Mode Transition
+## Step 3 — Protected Mode Transition
 
 **Requirements:**
 - Switch the CPU to protected mode
@@ -32,7 +32,7 @@ required to gradually bring the system to a goal.
 
 ---
 
-## Stage 4 — Memory Layout Display
+## Step 4 — Memory Layout Display
 
 **Requirements:**
 - Display the E820 memory layout
@@ -40,7 +40,7 @@ required to gradually bring the system to a goal.
 
 ---
 
-## Stage 5 — Halt
+## Step 5 — Halt
 
 **Requirements:**
 - Halt CPU execution safely

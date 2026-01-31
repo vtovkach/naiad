@@ -48,7 +48,7 @@ start:
     ; Use conventional RAM below 0xA0000 (0x00000–0x9FFFF)  
     call loadNextStage
     
-    jmp done 
+    jmp pass_control
 
 ; Check A20 Address Line  
 check_a20:
@@ -143,6 +143,7 @@ loadNextStage:
 .load_fail:
     mov si, s2_fail_msg
     call printStatus
+    jmp done ; Critical System Error --> Halt CPU  
 
 .load_ret:
     pop es 
@@ -157,6 +158,9 @@ done:
     cli 
     hlt 
 
+pass_control:
+    jmp 0x0000:0x7E00
+
 boot_drive:
     db 0
 
@@ -168,9 +172,9 @@ a20_e_msg:
 a20_ne_msg:
     db "A20 is not enabled", 0x0D, 0x0A, 0
 s2_success_msg:
-    db "2nd Stage is loaded successfully.", 0x0D, 0x0A, 0
+    db "INT 0x13 Success.", 0x0D, 0x0A, 0
 s2_fail_msg:
-    db "2nd Stage loading failed.", 0x0D, 0x0A, 0 
+    db "INT 0x13 Fail.", 0x0D, 0x0A, 0 
 
 ; Boot signature 
 times 510-($-$$) db 0 

@@ -15,9 +15,9 @@ start:
     mov si, stage2_success_msg
     call printStatus
 
+    ; Retrieve memory layout 
     call get_e820
 
-    call display_e820
 
     jmp halt
 
@@ -92,9 +92,6 @@ halt:
 ; Status Messages
 ; --------------- 
 stage2_success_msg: db "Second stage loaded successfully", 0x0D, 0x0A, 0
-str_base: db "BASE=", 0
-str_len:  db " LEN=", 0
-str_type: db " TYPE=", 0
 
 ; ------------------ 
 ; E820 Data 

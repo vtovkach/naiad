@@ -18,8 +18,6 @@ start:
     ; Retrieve memory layout 
     call get_e820
 
-    call print_e820
-
     jmp halt
 
 ; Set SI to point to the message before the function call
@@ -37,51 +35,51 @@ printStatus:
     ret
 
 get_e820:
-    pushad 
-    push ds 
-    push es 
+    pushad
+    push ds
+    push es
 
-    xor ax, ax 
-    mov ds, ax 
+    xor ax, ax
+    mov ds, ax
 
-    ; Point ES:DI at buffer 
     mov ax, E820_ES
-    mov es, ax 
+    mov es, ax
     mov di, e820_buf
 
-    xor ebx, ebx 
-    xor bp, bp 
-    mov edx, SMAP
+    xor ebx, ebx
+    xor bp, bp
 
 .e820_next:
-    mov eax, 0xE820 
-    mov ecx, 24      ; 24 bytes per entry 
+    mov edx, SMAP
+    mov eax, 0xE820
+    mov dword [es:di+20], 1
+    mov ecx, 24
     int 0x15
-    jc .done         ; CF=1 -> finished/error 
+    jc .done
 
     cmp eax, SMAP
-    jne .done        ; BIOS did't return SMAP -> abort
+    jne .done
 
+    ; ignore zero-length
     mov eax, [es:di+8]
-    or eax, [es:di+12]
-    jz .skip 
+    or  eax, [es:di+12]
+    jz  .skip_store
 
     inc bp
-
     add di, 24
     cmp bp, E820_MAX
-    jae .done 
+    jae .done
 
-.skip:
-    test ebx, ebx 
-    jne .e820_next 
+.skip_store:
+    test ebx, ebx
+    jne .e820_next
 
 .done:
-    mov [e820_count], bp 
+    mov [e820_count], bp
 
     pop es
     pop ds
-    popad 
+    popad
     ret
 
 ; Halt CPU 

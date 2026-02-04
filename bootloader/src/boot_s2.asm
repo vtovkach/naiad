@@ -1,10 +1,6 @@
 
-
 BITS 16 
-global stage2_start
-global e820_buf 
-global e820_count
-extern print_e820 
+ORG 0x7E00
 
 ; ------------
 ; CONSTANTS
@@ -12,7 +8,6 @@ extern print_e820
 SMAP        equ 0x534D4150 
 E820_MAX    equ 64
 E820_ES     equ 0x0000
-
 
 stage2_start: 
     

@@ -1,6 +1,10 @@
 
-org 0x7E00
-bits 16 
+
+BITS 16 
+global stage2_start
+global e820_buf 
+global e820_count
+extern print_e820 
 
 ; ------------
 ; CONSTANTS
@@ -9,7 +13,8 @@ SMAP        equ 0x534D4150
 E820_MAX    equ 64
 E820_ES     equ 0x0000
 
-start: 
+
+stage2_start: 
     
     ; Display Success Transition Message 
     mov si, stage2_success_msg
@@ -98,6 +103,5 @@ stage2_success_msg: db "Second stage loaded successfully", 0x0D, 0x0A, 0
 e820_count: dw 0
 e820_buf:
     times(E820_MAX*24) db 0
-
 
 times (32*512) - ($-$$) db 0 

@@ -19,6 +19,7 @@ required to gradually bring the system to a goal.
 
 **Requirements:**
 - Collect the system memory map using E820 and store it in a buffer
+- Enable the VESA framebuffer for later use in protected mode. 
 - Prepare for protected mode
 - Build a minimal Global Descriptor Table (GDT)
 

@@ -9,6 +9,10 @@ SMAP        equ 0x534D4150
 E820_MAX    equ 64
 E820_ES     equ 0x0000
 
+GDT_NULL    equ 0x0000000000000000
+GDT_CODE    equ 0x00CF9A000000FFFF
+GDT_DATA    equ 0x00CF92000000FFFF
+
 stage2_start: 
     
     ; Display Success Transition Message 
@@ -22,7 +26,31 @@ stage2_start:
     mov si, e820_retrieve_msg
     call printStatus
 
-    jmp halt
+
+    mov ax, 0x0013
+    int 0x10 
+
+    ; Enter Protected Mode 
+    jmp switch_mode
+
+[bits 32]
+PM:
+    mov ax, 0x10          ; DATA_SEL
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov esp, 0x90000      ; pick a safe stack
+
+    ; Draw one pixel in mode 13h at (10,10), color 15
+    mov eax, 10           ; x
+    mov ebx, 10           ; y
+    mov edx, 15           ; color in DL
+
+    imul ebx, ebx, 320    ; y*320
+    add ebx, eax          ; + x
+    mov byte [0xA0000 + ebx], dl
 
 ; Set SI to point to the message before the function call
 printStatus:
@@ -86,6 +114,62 @@ get_e820:
     popad
     ret
 
+; To initialize Protected Mode 
+; 1.) cli  
+; 2.) Set up GDT wiht at least CODE Segment and Data Segment 
+; 3.) Load GDT register lgdt 
+; 4.) Set first bit of CR0 
+; 5.) Perform far jump "jmp CODE_SEGMENT:EIP" 
+;       - CODE_SEGMENT -> pointer to the CODE SEGMENT in GDT 
+;       - EIP -> pointer to the first instruction to execute  
+;
+
+switch_mode: 
+
+    cli 
+
+    xor ax, ax 
+    mov es, ax 
+    mov ds, ax 
+    mov di, 0xBE00
+
+    cld 
+
+    ; Load Null Segment Descriptor 
+    xor ax, ax 
+    stosw  
+    stosw
+    stosw
+    stosw 
+
+    ; Load Code Segment Descriptor 
+    mov ax, 0xFFFF
+    stosw 
+    mov ax, 0x0000
+    stosw 
+    mov ax, 0x9A00
+    stosw 
+    mov ax, 0x00CF
+    stosw 
+
+    ; Load Data Segment Descriptor 
+    mov ax, 0xFFFF
+    stosw 
+    mov ax, 0x0000
+    stosw 
+    mov ax, 0x9200
+    stosw 
+    mov ax, 0x00CF
+    stosw 
+
+    lgdt [gdt_desc] 
+
+    mov eax, cr0 
+    or eax, 1 
+    mov cr0, eax 
+
+    jmp 0x08:PM 
+
 ; Halt CPU 
 halt: 
     cli 
@@ -96,6 +180,10 @@ halt:
 ; --------------- 
 stage2_success_msg: db "Second stage loaded successfully", 0x0D, 0x0A, 0
 e820_retrieve_msg:  db "E820 Retrieved Successfully", 0x0D, 0x0A, 0
+
+gdt_desc:
+    dw 0x17         ; limit (3 entries)
+    dd 0x0000BE00   ; base (linear address )
 
 ; ------------------ 
 ; E820 Data 

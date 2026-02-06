@@ -26,7 +26,7 @@ stage2_start:
     mov si, e820_retrieve_msg
     call printStatus
 
-    ; Sleep for 2 seconds before entering PM 
+    ; Sleep for 1.5 seconds before entering PM 
     mov ah, 0x86          ; wait command 
     mov cx, 0x0016        ; high word
     mov dx, 0xE360        ; low word  

@@ -184,7 +184,7 @@ PM:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov esp, 0x90000      ; pick a safe stack
+    mov esp, 0x00007C00   
 
     ; Draw one pixel in mode 13h at (10,10), color 15
     mov eax, 10           ; x

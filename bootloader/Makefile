@@ -16,7 +16,8 @@ STAGE2_SECTORS := 12
 KERNEL_SECTORS := 20
 TOTAL_SECTORS  := 33   # 1 + stage2(12) + kernel(20)
 
-IMG := $(DISK_DIR)/disk.img
+# REAL TARGET DISK (DANGEROUS!)
+DEV := /dev/sda
 
 QEMU := qemu-system-i386
 
@@ -69,18 +70,26 @@ $(BIN_DIR)/$(KERNEL).bin: $(BIN_DIR)/$(KERNEL).elf | $(BIN_DIR)
 # -------------------------
 # Disk image
 # -------------------------
-image: $(IMG)
+image: $(BIN_DIR)/$(STAGE1).bin $(BIN_DIR)/$(STAGE2).bin
+	# Unmount anything on the device (ignore errors)
+	sudo umount $(DEV)* 2>/dev/null || true
+	# Optional: wipe first 33 sectors (destroys partition table/filesystems)
+	sudo dd if=/dev/zero of=$(DEV) bs=$(SECTOR_SIZE) count=$(TOTAL_SECTORS) conv=fsync
+	# Stage 1 -> sector 0
+	sudo dd if=$(BIN_DIR)/$(STAGE1).bin of=$(DEV) bs=$(SECTOR_SIZE) conv=notrunc,fsync seek=0
+	# Stage 2 -> sectors 1..32
+	sudo dd if=$(BIN_DIR)/$(STAGE2).bin of=$(DEV) bs=$(SECTOR_SIZE) conv=notrunc,fsync seek=1 count=$(STAGE2_SECTORS)
+	sync
 
-$(IMG): $(BIN_DIR)/$(STAGE1).bin $(BIN_DIR)/$(STAGE2).bin $(BIN_DIR)/$(KERNEL).bin | $(DISK_DIR)
+$(IMG): $(BIN_DIR)/$(STAGE1).bin $(BIN_DIR)/$(STAGE2).bin | $(DISK_DIR)
 	dd if=/dev/zero of=$@ bs=$(SECTOR_SIZE) count=$(TOTAL_SECTORS)
 	dd if=$(BIN_DIR)/$(STAGE1).bin of=$@ bs=$(SECTOR_SIZE) conv=notrunc seek=0
-	dd if=$(BIN_DIR)/$(STAGE2).bin of=$@ bs=$(SECTOR_SIZE) conv=notrunc seek=1
-	dd if=$(BIN_DIR)/$(KERNEL).bin of=$@ bs=$(SECTOR_SIZE) conv=notrunc seek=13
+	dd if=$(BIN_DIR)/$(STAGE2).bin of=$@ bs=$(SECTOR_SIZE) conv=notrunc seek=1 count=$(STAGE2_SECTORS)
 
 run: image
-	$(QEMU) -no-reboot -drive format=raw,file=$(IMG)
+	$(QEMU) -drive format=raw,file=$(IMG)
 
 clean:
 	rm -rf $(BIN_DIR) $(DISK_DIR) $(OBJ_DIR)
 
-.PHONY: all image run clean
+.PHONY: all image clean

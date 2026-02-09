@@ -47,7 +47,10 @@ start:
     ; Load second stage to 0x0000:0x7E00 (phys 0x7E00)
     ; Use conventional RAM below 0xA0000 (0x00000–0x9FFFF)  
     call loadNextStage
-    
+
+    ; Pass boot drive number to second stage 
+    mov al, [boot_drive]
+
     jmp pass_control
 
 ; Check A20 Address Line  

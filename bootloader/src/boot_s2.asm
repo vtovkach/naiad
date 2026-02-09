@@ -103,43 +103,44 @@ get_e820:
     pop es
     pop ds
     popad
-    ret
+    ret         
 
+; CHS read
+; Reads 32 sectors starting at CHS sector 34 (1-based) on C=0,H=0
 load_mini_kernel:
-    push ax 
-    push bx 
-    push cx 
-    push dx 
-    push es 
+    push ax
+    push bx
+    push cx
+    push dx
+    push es
 
-    ; Set Destination ES:BX 
-    mov ax, 0xFFFF  
-    mov es, ax 
-    mov bx, 0x0010
+    mov ax, 0x0000
+    mov es, ax
+    mov bx, 0xBE00
 
-    mov ah, 0x02    ; read op  
-    mov al, 0x20    ; num of sectors to read (32)
-    mov ch, 0 
-    mov cl, 0x22    ; sector 34 to start reading 
-    mov dh, 0 
+    mov ah, 0x02
+    mov al, 0x20 ; # sectors to read (32)
+    mov ch, 0
+    mov cl, 0x22 ; sector to start write (34)          
+    mov dh, 0
     mov dl, [boot_drive]
-    int 0x13 
-    jc .load_fail 
+    int 0x13
+    jc .load_fail
 
-    mov si, ker_success_msg 
+    mov si, ker_success_msg
     call printStatus
-    jmp .load_ret 
+    jmp .load_ret
 
 .load_fail:
     mov si, ker_fail_msg
     call printStatus
 
 .load_ret:
-    pop es 
-    pop dx 
-    pop cx 
-    pop bx 
-    pop ax 
+    pop es
+    pop dx
+    pop cx
+    pop bx
+    pop ax
     ret
 
 ; To initialize Protected Mode 

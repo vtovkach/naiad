@@ -117,7 +117,7 @@ printStatus:
 .end_print:
     ret 
 
-; Read 32 sectors after boot sector to load 2nd stage  
+; Read 12 sectors after boot sector to load 2nd stage  
 loadNextStage:
     push ax
     push bx
@@ -131,7 +131,7 @@ loadNextStage:
     mov bx, 0x7E00
 
     mov ah, 0x02            ; read operation 
-    mov al, 0x20            ; number of sectors to read 
+    mov al, 0x0C            ; number of sectors to read 
     mov ch, 0               ; cylinder  
     mov cl, 2               ; sector 2 (start AFTER boot sector)
     mov dh, 0               ; head 

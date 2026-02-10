@@ -214,7 +214,7 @@ PM:
     stosw 
     jmp .print
 
-.done 
+.done:
 
     jmp halt
 
@@ -225,4 +225,4 @@ pm_msg_end:
 
 PM_MSG_LEN  equ (pm_msg_end - protected_mode_msg)
 
-times (32*512) - ($-$$) db 0 
+times (12*512) - ($-$$) db 0 

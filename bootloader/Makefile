@@ -4,18 +4,27 @@ ASMFLAGS :=
 SRC_DIR  := src
 BIN_DIR  := bin
 DISK_DIR := disk
+OBJ_DIR  := obj
 
 STAGE1 := boot_s1
 STAGE2 := boot_s2
+KERNEL := kernel
 
 # Disk layout
 SECTOR_SIZE    := 512
 STAGE2_SECTORS := 12
-TOTAL_SECTORS  := 13   # 1 + stage2(12)
+KERNEL_SECTORS := 20
+TOTAL_SECTORS  := 33   # 1 + stage2(12) + kernel(20)
 
 IMG := $(DISK_DIR)/disk.img
 
 QEMU := qemu-system-i386
+
+CC := gcc
+LD := ld
+OBJCOPY := objcopy
+CFLAGS := -m32 -ffreestanding -fno-pie -fno-pic -fno-stack-protector -nostdlib
+LDFLAGS := -m elf_i386 -T kernel.ld
 
 all: image
 
@@ -25,6 +34,9 @@ $(BIN_DIR):
 
 $(DISK_DIR):
 	mkdir -p $(DISK_DIR)
+
+$(OBJ_DIR):
+	mkdir -p $(OBJ_DIR)
 
 # -------------------------
 # Stage 1 (boot sector)
@@ -39,9 +51,24 @@ $(BIN_DIR)/$(STAGE2).bin: $(SRC_DIR)/$(STAGE2).asm | $(BIN_DIR)
 	$(ASM) -f bin $(ASMFLAGS) $< -o $@
 
 # -------------------------
+# Kernel (ELF + flat bin)
+# -------------------------
+$(OBJ_DIR)/kernel_entry.o: $(SRC_DIR)/kernel/kernel_entry.asm | $(OBJ_DIR)
+	$(ASM) -f elf32 $(ASMFLAGS) $< -o $@
+
+$(OBJ_DIR)/mini_kernel.o: $(SRC_DIR)/kernel/mini_kernel.c | $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BIN_DIR)/$(KERNEL).elf: $(OBJ_DIR)/kernel_entry.o $(OBJ_DIR)/mini_kernel.o kernel.ld | $(BIN_DIR)
+	$(LD) $(LDFLAGS) $(OBJ_DIR)/kernel_entry.o $(OBJ_DIR)/mini_kernel.o -o $@
+
+$(BIN_DIR)/$(KERNEL).bin: $(BIN_DIR)/$(KERNEL).elf | $(BIN_DIR)
+	$(OBJCOPY) -O binary $< $@
+
+# -------------------------
 # Disk image
 # -------------------------
-image: $(IMG)
+image: $(IMG) $(BIN_DIR)/$(KERNEL).bin
 
 $(IMG): $(BIN_DIR)/$(STAGE1).bin $(BIN_DIR)/$(STAGE2).bin | $(DISK_DIR)
 	dd if=/dev/zero of=$@ bs=$(SECTOR_SIZE) count=$(TOTAL_SECTORS)
@@ -52,6 +79,6 @@ run: image
 	$(QEMU) -drive format=raw,file=$(IMG)
 
 clean:
-	rm -rf $(BIN_DIR) $(DISK_DIR)
+	rm -rf $(BIN_DIR) $(DISK_DIR) $(OBJ_DIR)
 
 .PHONY: all image run clean

@@ -48,8 +48,9 @@ start:
     ; Use conventional RAM below 0xA0000 (0x00000–0x9FFFF)  
     call loadNextStage
 
-    ; Pass boot drive number to second stage 
-    mov al, [boot_drive]
+    ; Pass boot drive number to 2nd stage
+    xor dx, dx  
+    mov dl, [boot_drive]
 
     jmp pass_control
 

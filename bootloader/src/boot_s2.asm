@@ -15,10 +15,8 @@ GDT_DATA    equ 0x00CF92000000FFFF
 
 stage2_start: 
 
-    ; Save boot drive info 
-    push cs 
-    pop ds 
-    mov [boot_drive], al 
+    ; Save boot drive info  
+    mov [boot_drive], dl
 
     ; Display Success Transition Message 
     mov si, stage2_success_msg

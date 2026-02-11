@@ -29,6 +29,9 @@ stage2_start:
     mov si, e820_retrieve_msg
     call printStatus
 
+    ; Load mini kernel at 0x9600
+    call load_kernel
+    
     ; Sleep for 1.5 seconds before entering PM 
     mov ah, 0x86          ; wait command 
     mov cx, 0x0016        ; high word
@@ -100,6 +103,46 @@ get_e820:
     popad
     ret         
 
+load_kernel:
+    push ax 
+    push bx 
+    push cx
+    push dx 
+    push es 
+    push ds 
+
+    ; Set destination 
+    xor ax, ax 
+    mov es, ax 
+    mov bx, 0x9600
+
+    mov ah, 0x02            ; read opp 
+    mov al, 0x14            ; # of sectors to read 
+    mov ch, 0               ; cylinder 
+    mov cl, 0x0E            ; sector 14 to start 
+    mov dh, 0               ; head 
+    mov dl, [boot_drive]    ; boot drive from BIOS 
+    int 0x13
+    jc .load_fail
+
+    ; Print Success Message 
+    mov si, kernel_success_msg
+    call printStatus
+    jmp .load_ret
+
+.load_fail:
+    mov si, kernel_fail_msg
+    call printStatus
+
+.load_ret:
+    pop ds
+    pop es 
+    pop dx
+    pop cx 
+    pop bx 
+    pop ax 
+    ret 
+
 ; To initialize Protected Mode 
 ; 1.) cli  
 ; 2.) Set up GDT wiht at least CODE Segment and Data Segment 
@@ -163,6 +206,9 @@ halt:
 ; ---------------
 ; Status Messages
 ; --------------- 
+kernel_success_msg: db "Kernel loaded successfully", 0x0D, 0x0A, 0
+kernel_fail_msg:    db "Kernel load failed", 0x0D, 0x0A, 0
+
 stage2_success_msg: db "Second stage loaded successfully", 0x0D, 0x0A, 0
 e820_retrieve_msg:  db "E820 Retrieved Successfully", 0x0D, 0x0A, 0
 

@@ -258,7 +258,9 @@ PM:
     jmp .print
 
 .done:
-
+    ; Pass e820 pointer to the kernel through ebx register 
+    mov ebx, e820_buf
+    
     ; Jump to kernel entry CS:EIP 
     jmp 0x08:0x00009600
 

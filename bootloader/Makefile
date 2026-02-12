@@ -78,7 +78,7 @@ $(IMG): $(BIN_DIR)/$(STAGE1).bin $(BIN_DIR)/$(STAGE2).bin $(BIN_DIR)/$(KERNEL).b
 	dd if=$(BIN_DIR)/$(KERNEL).bin of=$@ bs=$(SECTOR_SIZE) conv=notrunc seek=13
 
 run: image
-	$(QEMU) -no-reboot -drive format=raw,file=$(IMG)
+	$(QEMU) -m 32G -no-reboot -drive format=raw,file=$(IMG)
 
 clean:
 	rm -rf $(BIN_DIR) $(DISK_DIR) $(OBJ_DIR)

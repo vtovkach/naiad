@@ -105,6 +105,23 @@ static void print(const char* str)
     // Sync the blinking hardware cursor with your cursor 
 }
 
+static void print_uint32_b10(uint32_t num)
+{
+    if(num < 10)
+    {   
+        char ch = '0' + num % 10;
+        put_char(ch);
+
+        return; 
+    }
+
+    print_uint32_b10(num / 10);
+    char ch = '0' + num % 10; 
+    put_char(ch);
+
+    return;
+}
+
 static inline void outb(uint16_t port, uint8_t val) 
 {
     __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));

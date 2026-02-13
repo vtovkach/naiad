@@ -183,6 +183,9 @@ int kernel_main(void)
     vga_disable_cursor();
     print("Kernel Loaded Successfully\n");
 
+    print("Number of e820 entries: ");
+    print_uint32_b10(e820_count);
+    putchar('\n');
     display_e820();
 
 

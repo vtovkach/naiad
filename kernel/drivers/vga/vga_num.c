@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include "../../include/drivers/vga/vga_text.h"
+
 void print_uint32_b10(uint32_t x)
 {
     if(x < 10)

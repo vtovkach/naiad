@@ -1,6 +1,6 @@
 # Naiad
 
-Naiad is a custom x86 operating system developed from scratch in C.
+Naiad is a 64-bit x86 operating system developed from scratch in C.
 
 ## Architecture
 

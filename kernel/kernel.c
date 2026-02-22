@@ -3,6 +3,8 @@
 #include "include/drivers/vga/vga_num.h"
 #include "include/drivers/vga/vga_text.h"
 
+#define GDT_BASE 0xBE00
+
 int kmain()
 {
 

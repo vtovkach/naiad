@@ -21,7 +21,7 @@ struct __attribute__((packed)) idtr
     uint32_t base; 
 };
 
-void idt_Init(void)
+void idt_init(void)
 {
     struct idtr idt = {.limit = (IDT_ENTRIES * IDT_DESC_SIZE) - 1, .base = IDT_BASE};
 
